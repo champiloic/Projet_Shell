@@ -5,15 +5,25 @@
 #include "exec_commande.h"
 
 void exec_commande(struct cmdline *l){
-    if ( strcmp(l->seq[0][0],"quit") == 0 ){//quelque commande interne
+    if (!(l->seq[0])) {
+        printf("pas de commande \n");
+    }
+    else if (strcmp(l->seq[0][0],"quit") == 0 ){//quelque commande interne
         	exit(0);
    	}
-    if(strcmp(l->seq[0][0],"cd") == 0){ 
+    
+    
+    else if (strcmp(l->seq[0][0],"cd") == 0){ 
         int error_cd = chdir(l->seq[0][1]);
         if(error_cd ==-1){
             perror("fork failed");
         }
     }
+    //else if(l->in) {
+    //    exec <- stdin
+    //}
+    // else if(strcmp(l->seq[0], "<") ) {
+        
     else{ // commande externe
         pid_t pid = fork();
 	    if(pid == 0){

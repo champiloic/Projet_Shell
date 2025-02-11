@@ -24,11 +24,14 @@ int main()
 			exit(0);
 		}
 
-		if (l->err) {
+		else if (l->err) {
 			/* Syntax error, read another command */
 			printf("error: %s\n", l->err);
-			continue;
+			
 		}
-		exec_commande(l);	
+		else {
+			exec_commande(l);	
+		}
+
 	}
 }
