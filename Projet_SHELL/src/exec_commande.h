@@ -6,6 +6,6 @@
 #include "readcmd.h"
 #include "csapp.h"
 
-void exec_commande(cmdline *l);
+void exec_commande(struct cmdline *l);
 
 #endif
