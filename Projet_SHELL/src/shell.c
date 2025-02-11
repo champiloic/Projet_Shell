@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include "readcmd.h"
 #include "csapp.h"
+#include "exec_commande.h"
 
 
 int main()
@@ -28,21 +29,18 @@ int main()
 			printf("error: %s\n", l->err);
 			continue;
 		}
-
+		if ( strcmp(l->seq[0][0],"quit") == 0 ){
+        	exit(0);
+   		}
+		else{
+			exec_commande(l);
+		}
 		// if (l->in) printf("in: %s\n", l->in);
 		// if (l->out) printf("out: %s\n", l->out);
 		
-		if ( strcmp(l->seq[0][0],"quit") == 0 ){
-        	exit(0);
-   		} 
-		else{
-			 pid_t pid = fork();
-			 if(pid == 0){
-				execvp(l->seq[0][0],l->seq[0]);
-				exit(0);
-			}
-			wait(NULL);
-		}
+		
+			
+		
 		/* Display each command of the pipe */
 		// for (i=0; l->seq[i]!=0; i++) {
 		// 	char **cmd = l->seq[i];
