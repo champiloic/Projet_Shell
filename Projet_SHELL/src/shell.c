@@ -30,7 +30,7 @@ int main()
 			
 		}
 		else {
-			exec_commande(l);	
+			exec_commande(l);
 		}
 
 	}
