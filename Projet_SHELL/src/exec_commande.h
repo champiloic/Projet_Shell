@@ -14,7 +14,7 @@ int commande(struct cmdline *l);
 /*fonction commande_externe(struct cmdline *l)
 Entree : "l" la ligne de commande
     Gère les commande externe */
-void commande_externe(struct cmdline *l);
+void commande_externe(struct cmdline *l,int num_commande);
 
 /*fonction Quit()
     Si la commande quit est taper, quit le shell*/

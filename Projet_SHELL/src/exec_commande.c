@@ -2,10 +2,14 @@
 #include <stdlib.h>
 #include "readcmd.h"
 #include "csapp.h"
+#include "mypipe.h"
 #include "exec_commande.h"
 /******************************************************************/
 int commande(struct cmdline *l){
-    if ( strcmp(l->seq[0][0],"quit") == 0 ){     //quelque commande interne
+    if(taille_seq(l)>1){
+        return 3 ;
+    }
+    else if ( strcmp(l->seq[0][0],"quit") == 0 ){     //quelque commande interne
         return 0;
    	}
     else if(strcmp(l->seq[0][0],"cd") == 0){ 
@@ -39,12 +43,12 @@ void CD(struct cmdline *l){
 }
 
 /******************************************************************/
-void commande_externe(struct cmdline *l){// commande externe
+void commande_externe(struct cmdline *l, int num_commande){// commande externe
     pid_t pid = fork();
 	if(pid == 0){
         gestion_redirection(l);
     
-		int error = execvp(l->seq[0][0],l->seq[0]);
+		int error = execvp(l->seq[num_commande][0],l->seq[num_commande]);
         if(error == -1){
             perror("exec");
             exit(1);
@@ -69,10 +73,12 @@ void exec_commande(struct cmdline *l){
                 CD(l);
                 break;
         case(2):
-                commande_externe(l);
+                commande_externe(l,0);
                 break;
+        case(3):
+                one_pipe(l);
         default:
-            printf("commande inconnue");
+            printf("commande inconnue\n");
     }
 }
 
