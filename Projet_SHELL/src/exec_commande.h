@@ -7,12 +7,12 @@
 #include "csapp.h"
 
 /*fonction commande(struct cmdline *l)
-    Renvoie 0 si la commande est quit
-    Renvoie 1 si la commande esr cd
-    Sinon renvoie 2 si c'est une fonction externe*/
+Entree : "l" la ligne de commande
+Sortie : Renvoie un entier entre 0 et 3 selon l'entree de la fonction*/
 int commande(struct cmdline *l);
 
 /*fonction commande_externe(struct cmdline *l)
+Entree : "l" la ligne de commande
     Gère les commande externe */
 void commande_externe(struct cmdline *l);
 
@@ -20,12 +20,14 @@ void commande_externe(struct cmdline *l);
     Si la commande quit est taper, quit le shell*/
 void Quit();
 
-/*fonction CD(char* l)
+/*fonction CD(struct cmdline *l)
+Entree : "l" la ligne de commande
     Gère la commande cd*/
 void CD(struct cmdline *l);
 
 
 /* fonction exec_commande(struct cmdline *l)
+Entree : "l" la ligne de commande
     Execute la commande selon la sortie de commande(struct cmdline *l)*/
 void exec_commande(struct cmdline *l);
 
