@@ -19,17 +19,17 @@ void one_pipe (struct cmdline *l){
     int error;
     int fd[2];
     pipe(fd);
-    if(Fork() == 0){
+    if(Fork() == 0){ // Première commande
         close(fd[0]);
         dup2(fd[1],1);
-        if (l->in) {
+        if (l->in) { // Première commande avec redirection d'entrée
             gestion_redirection(l, 0);
             int err = execvp(l->seq[0][0],l->seq[0]);
             if(err == -1){
                 perror("exec");
             }
         }
-        else {
+        else { // Première commande sans redirection
             int err = execvp(l->seq[0][0],l->seq[0]);
             if(err == -1){
                 perror("exec");
@@ -39,17 +39,17 @@ void one_pipe (struct cmdline *l){
         close(fd[1]);
         exit(0);
     }
-    if(Fork() == 0){
+    if(Fork() == 0){ // Deuxième commande
         close(fd[1]);
         dup2(fd[0],0);
-        if (l->out) {
+        if (l->out) { // Deuxième commande avec redirection de sortie
             gestion_redirection(l, 1);
             int err = execvp(l->seq[1][0],l->seq[1]);
             if(err == -1){
                 perror("exec");
             }
         }
-        else {
+        else {// Deuxième commande sans redirection
             int err = execvp(l->seq[1][0],l->seq[1]);
             if(err == -1){
                 perror("exec");
@@ -59,12 +59,15 @@ void one_pipe (struct cmdline *l){
         close(fd[0]);
         exit(0);
     }
-    close(fd[1]);
+    close(fd[1]); // On ferme l'entree et la sortie standard du père
     close(fd[0]);
     wait(NULL);
     wait(NULL);
 
 }
+
+/********************************************/
+
 void fermeture(int pipes[][2], int nb_cmd, int curr) {
     // commande actuelle premiere du tableau -> on ne ferme que son entrée puis on ferme tout le reste
     if (curr == 0) {
@@ -84,15 +87,15 @@ void fermeture(int pipes[][2], int nb_cmd, int curr) {
             close(pipes[i][1]);
         }
     }
-
+    // fermeture du tableau de pipes pour le père
     else if (curr == -1) {
         for (int i =0; i<nb_cmd-1; i++) {
             close(pipes[i][0]);
             close(pipes[i][1]);
         }
     }
+    
     // commande actuelle ni première ni dernière -> on garde son entrée ouverte, et la sortie de la précédente ouverte, puis on ferme tout le reste
-
     else {
         for (int i = 0; i< nb_cmd-1; i++) {
             if (i+1 == curr) {
@@ -108,6 +111,9 @@ void fermeture(int pipes[][2], int nb_cmd, int curr) {
         }
     }
 }
+
+/********************************************/
+
 void multi_pipes(struct cmdline *l, int nb_cmd) {
     int error;
     int i=0;
@@ -121,18 +127,18 @@ void multi_pipes(struct cmdline *l, int nb_cmd) {
 
     for(i; i<nb_cmd-1; i++) {
         if (i==0) {
-            // redir in
+            // Première commande
             if (Fork()==0) {
                 fermeture(pipes, nb_cmd, i);
                 dup2(pipes[0][1], STDIN_FILENO);
-                if (l->in) {
+                if (l->in) { // Première commande avec redirection d'entrée
                     gestion_redirection(l, 0);
                     error = execvp(l->seq[0][0],l->seq[0]);
                     if(error == -1){
                         perror("exec");
                     }
                 }
-                else {
+                else { // Première commande sans redirection
                     error = execvp(l->seq[0][0],l->seq[0]);
                     if(error == -1){
                         perror("exec");
@@ -143,18 +149,18 @@ void multi_pipes(struct cmdline *l, int nb_cmd) {
 
         }
         else if (i == nb_cmd-2) {
-            // redir out
+            // Derniere commande
             if (Fork()==0) {
                 fermeture(pipes, nb_cmd, i);
                 dup2(pipes[i][0], STDOUT_FILENO);
-                if (l->out) {
+                if (l->out) { // Dernière commande avec redirection de sortie
                     gestion_redirection(l, 1);
                     error = execvp(l->seq[i][0],l->seq[i]);
                     if(error == -1){
                         perror("exec");
                     }
                 }
-                else {
+                else { // Dernière commande sans redirection
                     error = execvp(l->seq[i][0],l->seq[i]);
                     if(error == -1){
                         perror("exec");
@@ -164,10 +170,10 @@ void multi_pipes(struct cmdline *l, int nb_cmd) {
             }
         }
         else {
-            // ?
+            // Commande autre que la premiere et la dernière
             if (Fork()==0) {
                 fermeture(pipes, nb_cmd, i);
-                dup2(pipes[0][1], 1);
+                dup2(pipes[i][1], 1);
                 error = execvp(l->seq[i][0],l->seq[i]);
                 if(error == -1){
                         perror("exec");
