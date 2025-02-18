@@ -21,6 +21,7 @@ int commande(struct cmdline *l){
     else {                                      //commande externe + redirection
         return 2;
     }
+    
 };
 
 void Quit() {
@@ -62,10 +63,14 @@ void gestion_redirection(struct cmdline *l, int inout) {
     }
     if (inout==2) {
     }
+
+    else {
+        perror("inout");
+    }
 }
 
 void commande_externe(struct cmdline *l, int num_commande){// commande externe
-    pid_t pid = fork();
+    pid_t pid = Fork();
 	if(pid == 0){
         int inout=2;
         if (l->in) {
@@ -104,7 +109,12 @@ void exec_commande(struct cmdline *l){
                 commande_externe(l,0);
                 break;
         case(3):
+            if (taille_seq(l)==2) {
                 one_pipe(l);
+            }  
+            else {
+                multi_pipes(l, taille_seq(l));
+            }
                 break;
         default:
             printf("commande inconnue\n");
