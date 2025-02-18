@@ -31,7 +31,7 @@ Entree : "l" la ligne de commande
     Execute la commande selon la sortie de commande(struct cmdline *l)*/
 void commande_externe(struct cmdline *l,int num_commande);
 
-void gestion_redirection(struct cmdline *l);
+void gestion_redirection(struct cmdline *l, int inout);
 
 
 #endif

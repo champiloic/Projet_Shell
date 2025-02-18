@@ -9,6 +9,7 @@
 
 int commande(struct cmdline *l){
     if(taille_seq(l)>1){
+        //printf("%d\n",taille_seq(l));
         return 3 ;
     }
     else if ( strcmp(l->seq[0][0],"quit") == 0 ){     //quelque commande interne
@@ -39,8 +40,8 @@ void CD(struct cmdline *l) {
 }
 
 
-void gestion_redirection(struct cmdline *l) {
-    if (l->in != NULL) {
+void gestion_redirection(struct cmdline *l, int inout) {
+    if (inout==0) {
         int fd_in = open(l->in, O_RDONLY);
         if (fd_in == -1) {
             perror("open");
@@ -50,7 +51,7 @@ void gestion_redirection(struct cmdline *l) {
         close(fd_in);
     }
 
-    if (l->out != NULL) {
+    if (inout==1) {
         int fd_out = open(l->out, O_WRONLY | O_CREAT | O_TRUNC, 0644);
         if (fd_out == -1) {
             perror("open");
@@ -59,12 +60,21 @@ void gestion_redirection(struct cmdline *l) {
         dup2(fd_out, STDOUT_FILENO);
         close(fd_out);
     }
+    if (inout==2) {
+    }
 }
 
 void commande_externe(struct cmdline *l, int num_commande){// commande externe
     pid_t pid = fork();
 	if(pid == 0){
-        gestion_redirection(l);
+        int inout=2;
+        if (l->in) {
+            inout=0;
+        }
+        else if (l->out) {
+            inout=1;
+        }
+        gestion_redirection(l,inout);
     
 		int error = execvp(l->seq[num_commande][0],l->seq[num_commande]);
         if(error == -1){
