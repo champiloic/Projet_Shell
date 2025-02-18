@@ -65,7 +65,7 @@ void one_pipe (struct cmdline *l){
     wait(NULL);
 
 }
-void fermeture(int[] *pipes, int nb_cmd, int curr) {
+void fermeture(int pipes[][2], int nb_cmd, int curr) {
     // commande actuelle premiere du tableau -> on ne ferme que son entrée puis on ferme tout le reste
     if (curr == 0) {
         close(pipes[0][0]);
@@ -85,7 +85,7 @@ void fermeture(int[] *pipes, int nb_cmd, int curr) {
         }
     }
 
-    else if (cur == -1) {
+    else if (curr == -1) {
         for (int i =0; i<nb_cmd-1; i++) {
             close(pipes[i][0]);
             close(pipes[i][1]);
