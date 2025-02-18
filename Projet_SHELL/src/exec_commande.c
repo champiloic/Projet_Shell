@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
 #include "readcmd.h"
 #include "csapp.h"
-#include "mypipe.h"
 #include "exec_commande.h"
-/******************************************************************/
+
 int commande(struct cmdline *l){
     if(taille_seq(l)>1){
         return 3 ;
@@ -20,29 +22,45 @@ int commande(struct cmdline *l){
     }
 };
 
-/******************************************************************/
-void Quit(){
+void Quit() {
     exit(0);
 }
 
-/******************************************************************/
-void CD(struct cmdline *l){
-    int error_cd;
-    if(l->seq[0][1] == NULL){
-        if(chdir(getenv("HOME")) == -1){
-            perror("Cd to home failed");
-            exit(1);
+void CD(struct cmdline *l) {
+    if (l->seq[0][1] == NULL) {
+        if (chdir(getenv("HOME")) == -1) {
+            perror("cd to home failed");
         }
-    }
-    else{
-        error_cd = chdir(l->seq[0][1]);
-        if(error_cd ==-1){
+    } else {
+        if (chdir(l->seq[0][1]) == -1) {
             perror("cd failed");
         }
     }
 }
 
-/******************************************************************/
+
+void gestion_redirection(struct cmdline *l) {
+    if (l->in != NULL) {
+        int fd_in = open(l->in, O_RDONLY);
+        if (fd_in == -1) {
+            perror("open");
+            exit(EXIT_FAILURE);
+        }
+        dup2(fd_in, STDIN_FILENO);
+        close(fd_in);
+    }
+
+    if (l->out != NULL) {
+        int fd_out = open(l->out, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+        if (fd_out == -1) {
+            perror("open");
+            exit(EXIT_FAILURE);
+        }
+        dup2(fd_out, STDOUT_FILENO);
+        close(fd_out);
+    }
+}
+
 void commande_externe(struct cmdline *l, int num_commande){// commande externe
     pid_t pid = fork();
 	if(pid == 0){
@@ -64,7 +82,7 @@ void commande_externe(struct cmdline *l, int num_commande){// commande externe
     }
 }
 
-/******************************************************************/
+
 void exec_commande(struct cmdline *l){
     switch(commande(l)){
         case(0):
@@ -77,50 +95,8 @@ void exec_commande(struct cmdline *l){
                 break;
         case(3):
                 one_pipe(l);
+                break;
         default:
             printf("commande inconnue\n");
-    }
-}
-
-/******************************************************************/
-
-void gestion_redirection(struct cmdline *l){
-    if (l->in != NULL){
-        int fd_in = open(l->in,O_RDONLY) ; //decripteur de fichier en cas de redirection d'entree 
-                
-        // Gestion des erreurs lors des redirections 
-                
-        if (access(l->in, F_OK) != 0){      // Verification si le fichier existe avec la primitive acces
-            printf("%s :file not found \n",l->in);
-            exit(1);
-        }
-
-        else if (access(l->in, R_OK) != 0){   // Verification des droits de lecture   
-            printf("%s: Permission denied\n",l->in);
-            exit(1);
-        }
-                
-        else {
-            dup2(fd_in,STDIN_FILENO);   // mettre une copie de fd dans l'entre standard
-        }
-        close(fd_in);    
-    }
-    if (l->out != NULL){
-        int fd_out = open(l->out,O_WRONLY | O_CREAT) ; //decripteur de fichier en cas de redirection de sortie 
-                
-        if (access(l->out, F_OK) != 0){      // Verification si le fichier existe avec la primitive acces
-            printf("%s :file not found \n",l->out);
-            exit(1);
-        }
-
-        else if (access(l->out, W_OK) != 0){   // Verification des droits de lecture   
-            printf("%s: Permission denied\n",l->out);
-            exit(1);
-        }
-        else {
-            dup2(fd_out,STDOUT_FILENO);   // mettre une copie de fd dans la sortie standard
-            close(fd_out);
-        }
-
     }
 }

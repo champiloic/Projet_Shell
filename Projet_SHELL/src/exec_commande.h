@@ -29,7 +29,7 @@ void CD(struct cmdline *l);
 /* fonction exec_commande(struct cmdline *l)
 Entree : "l" la ligne de commande
     Execute la commande selon la sortie de commande(struct cmdline *l)*/
-void exec_commande(struct cmdline *l);
+void commande_externe(struct cmdline *l,int num_commande);
 
 void gestion_redirection(struct cmdline *l);
 

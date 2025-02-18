@@ -22,6 +22,7 @@ void one_pipe (struct cmdline *l){
     pipe(fd);
     if(Fork() == 0){
         close(fd[0]);
+        dup2(fd[1],1);
         error = execvp(l->seq[0][0],l->seq[0]);
         if(error == -1){
             perror("exec");
@@ -31,6 +32,7 @@ void one_pipe (struct cmdline *l){
     }
     if(Fork() == 0){
         close(fd[1]);
+        dup2(fd[0],0);
         int err = execvp(l->seq[1][0],l->seq[1]);
         if(err == -1){
             perror("exec");
@@ -38,6 +40,8 @@ void one_pipe (struct cmdline *l){
         close(fd[0]);
         exit(0);
     }
+    close(fd[1]);
+    close(fd[0]);
     wait(NULL);
     wait(NULL);
 
