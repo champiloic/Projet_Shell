@@ -17,8 +17,6 @@ void one_pipe (struct cmdline *l);
 
 void multi_pipes(struct cmdline *l, int nb_cmd);
 
-void fermeture(int pipes[][2], int nb_cmd, int curr);
-
 
 
 #endif
