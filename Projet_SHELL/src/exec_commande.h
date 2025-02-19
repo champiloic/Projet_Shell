@@ -33,5 +33,6 @@ void commande_externe(struct cmdline *l,int num_commande);
 
 void gestion_redirection(struct cmdline *l, int inout);
 
+void exec_commande(struct cmdline *l);
 
 #endif

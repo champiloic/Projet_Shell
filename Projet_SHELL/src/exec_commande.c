@@ -6,7 +6,7 @@
 #include "readcmd.h"
 #include "csapp.h"
 #include "exec_commande.h"
-
+#include "mypipe.h"
 int commande(struct cmdline *l){
     if(taille_seq(l)>1){
         //printf("%d\n",taille_seq(l));
