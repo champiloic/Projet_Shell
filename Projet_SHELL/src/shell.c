@@ -28,12 +28,8 @@ int main()
 			printf("error: %s\n", l->err);
 			
 		}
-		else if(l->seq[0] == NULL){ // si la commande taper est vide
-            continue;
-        }
-
-		else {
-			exec_commande(l);
+		else if(l->seq[0] != NULL){ // si la commander tapé est non vide
+    		exec_commande(l);
 		}
 
 	}
