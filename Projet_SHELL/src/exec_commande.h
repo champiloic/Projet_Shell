@@ -6,6 +6,8 @@
 #include "readcmd.h"
 #include "csapp.h"
 
+void handler_SIGCHLD(int sig);
+
 /*fonction commande(struct cmdline *l)
 Entree : "l" la ligne de commande
 Sortie : Renvoie un entier entre 0 et 3 selon l'entree de la fonction*/

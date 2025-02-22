@@ -9,6 +9,18 @@
 #include "exec_commande.h"
 #include "mypipe.h"
 
+// Compteur necessaire pour le background
+int cpt;
+
+void handler_SIGCHLD(int sig){
+     while (  waitpid(-1,NULL,WNOHANG | WUNTRACED) > 0 ){
+	   // printf("handler reaped child\n");
+		cpt--;
+    }
+}
+
+/********************************************************/
+
 int commande(struct cmdline *l) {
     if (taille_seq(l) > 1) {
         return 3;
@@ -21,9 +33,13 @@ int commande(struct cmdline *l) {
     }
 }
 
+/********************************************************/
+
 void Quit() {
     exit(0);
 }
+
+/********************************************************/
 
 void CD(struct cmdline *l) {
     if (l->seq[0][1] == NULL) {
@@ -36,6 +52,8 @@ void CD(struct cmdline *l) {
         }
     }
 }
+
+/********************************************************/
 
 void gestion_redirection(struct cmdline *l, int inout) {
     if (inout == 0) {
@@ -58,6 +76,8 @@ void gestion_redirection(struct cmdline *l, int inout) {
         close(fd_out);
     }
 }
+
+/********************************************************/
 
 void commande_externe(struct cmdline *l, int num_commande) {
     pid_t pid = Fork();
@@ -88,16 +108,13 @@ void commande_externe(struct cmdline *l, int num_commande) {
     }
 }
 
-void check_background_processes() {
-    pid_t pid;
-    int status;
-    while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
-        printf("[%d] Terminé\n", pid);
-    }
-}
+/********************************************************/
 
 void exec_commande(struct cmdline *l) {
-    check_background_processes(); // Vérifier les processus en arrière-plan avant d'exécuter une nouvelle commande
+    if(l->background == 1){
+        cpt = taille_seq(l);
+        Signal(SIGCHLD,handler_SIGCHLD);
+    }
     switch (commande(l)) {
         case 0:
             Quit();

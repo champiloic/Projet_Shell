@@ -8,6 +8,7 @@
 #include "mypipe.h"
 
 /********************************************/
+
 int taille_seq(struct cmdline *l) {
     int cpt = 0;
     while (l->seq[cpt] != 0) {
@@ -15,6 +16,7 @@ int taille_seq(struct cmdline *l) {
     }
     return cpt;
 }
+
 /********************************************/
 
 void one_pipe(struct cmdline *l) {
@@ -43,16 +45,19 @@ void one_pipe(struct cmdline *l) {
         perror("exec");
         exit(EXIT_FAILURE);
     }
+
     close(fd[1]);
     close(fd[0]);
-    wait(NULL);
-    wait(NULL);
+
+    if (l->background == 0){ // Si la commande en fond on fait les 2 wait(NULL)
+        wait(NULL);
+        wait(NULL);
+    }
 }
 
 
 void multi_pipes(struct cmdline *l, int nb_cmd) {
     int pipes[nb_cmd - 1][2];  // Tubes entre les commandes
-
     // Création des nb_cmd-1 tubes
     for (int i = 0; i < nb_cmd - 1; i++) {
         if (pipe(pipes[i]) == -1) {
@@ -97,9 +102,10 @@ void multi_pipes(struct cmdline *l, int nb_cmd) {
         close(pipes[i][0]);
         close(pipes[i][1]);
     }
-
-    // Attendre tous les processus fils
-    for (int i = 0; i < nb_cmd; i++) {
-        wait(NULL);
+    if (l->background == 0){ // Si les commandes ne sont pas en fond on fait les wait(NULL) necessaire pour chaque process
+        // Attendre tous les processus fils
+        for (int i = 0; i < nb_cmd; i++) {
+            wait(NULL);
+        }
     }
 }
