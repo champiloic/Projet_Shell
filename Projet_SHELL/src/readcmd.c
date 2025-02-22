@@ -152,128 +152,135 @@ static void freecmd(struct cmdline *s)
 
 struct cmdline *readcmd(void)
 {
-	static struct cmdline *static_cmdline = 0;
-	struct cmdline *s = static_cmdline;
-	char *line;
-	char **words;
-	int i;
-	char *w;
-	char **cmd;
-	char ***seq;
-	size_t cmd_len, seq_len;
+    static struct cmdline *static_cmdline = 0;
+    struct cmdline *s = static_cmdline;
+    char *line;
+    char **words;
+    int i;
+    char *w;
+    char **cmd;
+    char ***seq;
+    size_t cmd_len, seq_len;
 
-	line = readline();
-	if (line == NULL) {
-		if (s) {
-			freecmd(s);
-			free(s);
-		}
-		return static_cmdline = 0;
-	}
+    line = readline();
+    if (line == NULL) {
+        if (s) {
+            freecmd(s);
+            free(s);
+        }
+        return static_cmdline = 0;
+    }
 
-	cmd = xmalloc(sizeof(char *));
-	cmd[0] = 0;
-	cmd_len = 0;
-	seq = xmalloc(sizeof(char **));
-	seq[0] = 0;
-	seq_len = 0;
+    cmd = xmalloc(sizeof(char *));
+    cmd[0] = 0;
+    cmd_len = 0;
+    seq = xmalloc(sizeof(char **));
+    seq[0] = 0;
+    seq_len = 0;
 
-	words = split_in_words(line);
-	free(line);
+    words = split_in_words(line);
+    free(line);
 
-	if (!s)
-		static_cmdline = s = xmalloc(sizeof(struct cmdline));
-	else
-		freecmd(s);
-	s->err = 0;
-	s->in = 0;
-	s->out = 0;
-	s->seq = 0;
+    if (!s)
+        static_cmdline = s = xmalloc(sizeof(struct cmdline));
+    else
+        freecmd(s);
+    s->err = 0;
+    s->in = 0;
+    s->out = 0;
+    s->seq = 0;
+    s->background = 0; // Initialiser le champ background à 0
 
-	i = 0;
-	while ((w = words[i++]) != 0) {
-		switch (w[0]) {
-		case '<':
-			/* Tricky : the word can only be "<" */
-			if (s->in) {
-				s->err = "only one input file supported";
-				goto error;
-			}
-			if (words[i] == 0) {
-				s->err = "filename missing for input redirection";
-				goto error;
-			}
-			s->in = words[i++];
-			break;
-		case '>':
-			/* Tricky : the word can only be ">" */
-			if (s->out) {
-				s->err = "only one output file supported";
-				goto error;
-			}
-			if (words[i] == 0) {
-				s->err = "filename missing for output redirection";
-				goto error;
-			}
-			s->out = words[i++];
-			break;
-		case '|':
-			/* Tricky : the word can only be "|" */
-			if (cmd_len == 0) {
-				s->err = "misplaced pipe";
-				goto error;
-			}
+    i = 0;
+    while ((w = words[i++]) != 0) {
+        switch (w[0]) {
+        case '<':
+            if (s->in) {
+                s->err = "only one input file supported";
+                goto error;
+            }
+            if (words[i] == 0) {
+                s->err = "filename missing for input redirection";
+                goto error;
+            }
+            s->in = words[i++];
+            break;
+        case '>':
+            if (s->out) {
+                s->err = "only one output file supported";
+                goto error;
+            }
+            if (words[i] == 0) {
+                s->err = "filename missing for output redirection";
+                goto error;
+            }
+            s->out = words[i++];
+            break;
+        case '|':
+            if (cmd_len == 0) {
+                s->err = "misplaced pipe";
+                goto error;
+            }
 
-			seq = xrealloc(seq, (seq_len + 2) * sizeof(char **));
-			seq[seq_len++] = cmd;
-			seq[seq_len] = 0;
+            seq = xrealloc(seq, (seq_len + 2) * sizeof(char **));
+            seq[seq_len++] = cmd;
+            seq[seq_len] = 0;
 
-			cmd = xmalloc(sizeof(char *));
-			cmd[0] = 0;
-			cmd_len = 0;
-			break;
-		default:
-			cmd = xrealloc(cmd, (cmd_len + 2) * sizeof(char *));
-			cmd[cmd_len++] = w;
-			cmd[cmd_len] = 0;
-		}
-	}
+            cmd = xmalloc(sizeof(char *));
+            cmd[0] = 0;
+            cmd_len = 0;
+            break;
+        case '&':
+            if (cmd_len == 0) {
+                s->err = "misplaced background operator";
+                goto error;
+            }
+            s->background = 1; // Mettre à jour le champ background
+            break;
+        default:
+            cmd = xrealloc(cmd, (cmd_len + 2) * sizeof(char *));
+            cmd[cmd_len++] = w;
+            cmd[cmd_len] = 0;
+        }
+    }
 
-	if (cmd_len != 0) {
-		seq = xrealloc(seq, (seq_len + 2) * sizeof(char **));
-		seq[seq_len++] = cmd;
-		seq[seq_len] = 0;
-	} else if (seq_len != 0) {
-		s->err = "misplaced pipe";
-		i--;
-		goto error;
-	} else
-		free(cmd);
-	free(words);
-	s->seq = seq;
-	return s;
+    if (cmd_len != 0) {
+        seq = xrealloc(seq, (seq_len + 2) * sizeof(char **));
+        seq[seq_len++] = cmd;
+        seq[seq_len] = 0;
+    } else if (seq_len != 0) {
+        s->err = "misplaced pipe";
+        i--;
+        goto error;
+    } else
+        free(cmd);
+    free(words);
+    s->seq = seq;
+    return s;
 error:
-	while ((w = words[i++]) != 0) {
-		switch (w[0]) {
-		case '<':
-		case '>':
-		case '|':
-			break;
-		default:
-			free(w);
-		}
-	}
-	free(words);
-	freeseq(seq);
-	for (i=0; cmd[i]!=0; i++) free(cmd[i]);
-	free(cmd);
-	if (s->in) {
-		free(s->in);
-		s->in = 0;
-	}
-	if (s->out) {
-		free(s->out);
-		s->out = 0;
-	}
-	return s;
+    while ((w = words[i++]) != 0) {
+        switch (w[0]) {
+        case '<':
+        case '>':
+        case '|':
+        case '&':
+            break;
+        default:
+            free(w);
+        }
+    }
+    free(words);
+    freeseq(seq);
+    for (i=0; cmd[i]!=0; i++) free(cmd[i]);
+    free(cmd);
+    if (s->in) {
+        free(s->in);
+        s->in = 0;
+    }
+    if (s->out) {
+        free(s->out);
+        s->out = 0;
+    }
+    return s;
 }
+

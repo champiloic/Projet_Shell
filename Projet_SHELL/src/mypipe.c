@@ -63,7 +63,6 @@ void multi_pipes(struct cmdline *l, int nb_cmd) {
 
     // Création des processus fils
     for (int i = 0; i < nb_cmd; i++) {
-
         if (fork() == 0) {  // Processus fils
             // Fermeture des tubes inutiles
             for (int j = 0; j < nb_cmd - 1; j++) {
@@ -74,40 +73,33 @@ void multi_pipes(struct cmdline *l, int nb_cmd) {
             }
 
             // Gestion des entrées/sorties des commandes
-            if (i == 0) {  // Première commande
-                close(pipes[i][0]);
-                dup2(pipes[i][1], STDOUT_FILENO);     // cas de la premiere commande ou l'entree est l entree standard
-                close(pipes[i][1]);
-            } else if (i == nb_cmd - 1) {  // Dernière commande ou la sortie est la sortie standard 
-                close(pipes[i - 1][1]);
-                dup2(pipes[i - 1][0], STDIN_FILENO);
-                close(pipes[i - 1][0]);
-            } else {  // Commandes intermédiaires
-                close(pipes[i - 1][1]);
-                dup2(pipes[i - 1][0], STDIN_FILENO);
-                close(pipes[i - 1][0]);
-
-                close(pipes[i][0]);
-                dup2(pipes[i][1], STDOUT_FILENO);
-                close(pipes[i][1]);
+            if (i > 0) {  // Commande intermédiaire ou dernière
+                close(pipes[i - 1][1]);  // Ferme l'extrémité d'écriture du tube précédent
+                dup2(pipes[i - 1][0], STDIN_FILENO);  // Redirige l'entrée standard
+                close(pipes[i - 1][0]);  // Ferme l'extrémité de lecture du tube précédent
+            }
+            if (i < nb_cmd - 1) {  // Pas la dernière commande
+                close(pipes[i][0]);  // Ferme l'extrémité de lecture du tube courant
+                dup2(pipes[i][1], STDOUT_FILENO);  // Redirige la sortie standard
+                close(pipes[i][1]);  // Ferme l'extrémité d'écriture du tube courant
             }
 
             // Exécution de la commande
-            int error = execvp(l->seq[i][0],l->seq[i]);
-                    if(error == -1){
-                        perror("exec");
-                    }
-            exit(0);
+            if (execvp(l->seq[i][0], l->seq[i]) == -1) {
+                perror("exec");
+                exit(EXIT_FAILURE);  // Terminate child process on exec failure
+            }
         }
     }
-
 
     // Fermeture des tubes dans le processus parent
     for (int i = 0; i < nb_cmd - 1; i++) {
         close(pipes[i][0]);
         close(pipes[i][1]);
     }
-    for (int i = 0; i < nb_cmd - 1; i++) {
+
+    // Attendre tous les processus fils
+    for (int i = 0; i < nb_cmd; i++) {
         wait(NULL);
     }
 }
