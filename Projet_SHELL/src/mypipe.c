@@ -7,7 +7,7 @@
 #include "exec_commande.h"
 #include "mypipe.h"
 
-int cpt;
+int cpt; //compteur utiliser pour le handler du SIGCHLD
 
 /********************************************/
 
@@ -52,11 +52,12 @@ void one_pipe(struct cmdline *l) {
     close(fd[1]);
     close(fd[0]);
 
-   if (!l->background) {
+   if (!l->background) { // si pas en background
             while(cpt){}
         } 
 }
 
+/********************************************/
 
 void multi_pipes(struct cmdline *l, int nb_cmd) {
     int pipes[nb_cmd - 1][2];  // Tubes entre les commandes
@@ -106,7 +107,7 @@ void multi_pipes(struct cmdline *l, int nb_cmd) {
         close(pipes[i][1]);
     }
     
-    if (!l->background) {
+    if (!l->background) { // si pas en background
             while(cpt){}
         } 
 }

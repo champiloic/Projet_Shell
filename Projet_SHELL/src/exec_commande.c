@@ -22,20 +22,6 @@ void handler_SIGCHLD(int sig){
 
 /********************************************************/
 
-int commande(struct cmdline *l) {
-    if (taille_seq(l) > 1) {
-        return 3;
-    } else if (strcmp(l->seq[0][0], "quit") == 0) {
-        return 0;
-    } else if (strcmp(l->seq[0][0], "cd") == 0) {
-        return 1;
-    } else {
-        return 2;
-    }
-}
-
-/********************************************************/
-
 void Quit() {
     exit(0);
 }
@@ -98,9 +84,23 @@ void commande_externe(struct cmdline *l, int num_commande) {
         }
         exit(0);
     } 
-    if (!l->background) {
+    if (!l->background) { // si pas en background
             while(cpt){}
         } 
+}
+
+/********************************************************/
+
+int commande(struct cmdline *l) {
+    if (taille_seq(l) > 1) {
+        return 3;
+    } else if (strcmp(l->seq[0][0], "quit") == 0) {
+        return 0;
+    } else if (strcmp(l->seq[0][0], "cd") == 0) {
+        return 1;
+    } else {
+        return 2;
+    }
 }
 
 /********************************************************/
