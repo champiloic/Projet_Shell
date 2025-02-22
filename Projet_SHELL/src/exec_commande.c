@@ -14,8 +14,9 @@ int cpt;
 
 void handler_SIGCHLD(int sig){
      while (  waitpid(-1,NULL,WNOHANG | WUNTRACED) > 0 ){
-	   // printf("handler reaped child\n");
+	    //printf("handler reaped child\n");
 		cpt--;
+        //printf("cpt = %d\n",cpt);
     }
 }
 
@@ -96,25 +97,16 @@ void commande_externe(struct cmdline *l, int num_commande) {
             exit(1);
         }
         exit(0);
-    } else if (pid > 0) {
-        if (!l->background) {
-            waitpid(pid, NULL, 0);
-        } else {
-            printf("[%d]\n", pid); // Afficher le PID du processus en arrière-plan
-        }
-    } else {
-        perror("fork");
-        exit(1);
-    }
+    } 
+    while(cpt){}
 }
 
 /********************************************************/
 
 void exec_commande(struct cmdline *l) {
-    if(l->background == 1){
-        cpt = taille_seq(l);
-        Signal(SIGCHLD,handler_SIGCHLD);
-    }
+    cpt = taille_seq(l);
+    Signal(SIGCHLD,handler_SIGCHLD);
+    //printf("signal accepted\n");
     switch (commande(l)) {
         case 0:
             Quit();

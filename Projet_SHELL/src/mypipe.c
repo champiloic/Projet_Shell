@@ -7,6 +7,8 @@
 #include "exec_commande.h"
 #include "mypipe.h"
 
+int cpt;
+
 /********************************************/
 
 int taille_seq(struct cmdline *l) {
@@ -23,13 +25,14 @@ void one_pipe(struct cmdline *l) {
     int error;
     int fd[2];
     pipe(fd);
+    cpt = taille_seq(l);
     if (Fork() == 0) {
         close(fd[0]);
         dup2(fd[1], STDOUT_FILENO);
         if (l->in) {
             gestion_redirection(l, 0);
         }
-        printf("Executing: %s\n", l->seq[0][0]);
+        //printf("Executing: %s\n", l->seq[0][0]);
         execvp(l->seq[0][0], l->seq[0]);
         perror("exec");
         exit(EXIT_FAILURE);
@@ -40,7 +43,7 @@ void one_pipe(struct cmdline *l) {
         if (l->out) {
             gestion_redirection(l, 1);
         }
-        printf("Executing: %s\n", l->seq[1][0]);
+        //printf("Executing: %s\n", l->seq[1][0]);
         execvp(l->seq[1][0], l->seq[1]);
         perror("exec");
         exit(EXIT_FAILURE);
@@ -49,16 +52,14 @@ void one_pipe(struct cmdline *l) {
     close(fd[1]);
     close(fd[0]);
 
-    if (l->background == 0){ // Si la commande en fond on fait les 2 wait(NULL)
-        wait(NULL);
-        wait(NULL);
-    }
+    while(cpt){}
 }
 
 
 void multi_pipes(struct cmdline *l, int nb_cmd) {
     int pipes[nb_cmd - 1][2];  // Tubes entre les commandes
     // Création des nb_cmd-1 tubes
+    cpt = taille_seq(l);
     for (int i = 0; i < nb_cmd - 1; i++) {
         if (pipe(pipes[i]) == -1) {
             perror("pipe");
@@ -102,10 +103,5 @@ void multi_pipes(struct cmdline *l, int nb_cmd) {
         close(pipes[i][0]);
         close(pipes[i][1]);
     }
-    if (l->background == 0){ // Si les commandes ne sont pas en fond on fait les wait(NULL) necessaire pour chaque process
-        // Attendre tous les processus fils
-        for (int i = 0; i < nb_cmd; i++) {
-            wait(NULL);
-        }
-    }
+    while(cpt){}
 }
