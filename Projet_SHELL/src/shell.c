@@ -23,12 +23,15 @@ int main()
 			printf("exit\n");
 			exit(0);
 		}
-
 		else if (l->err) {
 			/* Syntax error, read another command */
 			printf("error: %s\n", l->err);
 			
 		}
+		else if(l->seq[0] == NULL){ // si la commande taper est vide
+            continue;
+        }
+
 		else {
 			exec_commande(l);
 		}
