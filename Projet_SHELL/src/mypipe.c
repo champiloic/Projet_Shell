@@ -52,7 +52,9 @@ void one_pipe(struct cmdline *l) {
     close(fd[1]);
     close(fd[0]);
 
-    while(cpt){}
+   if (!l->background) {
+            while(cpt){}
+        } 
 }
 
 
@@ -103,5 +105,8 @@ void multi_pipes(struct cmdline *l, int nb_cmd) {
         close(pipes[i][0]);
         close(pipes[i][1]);
     }
-    while(cpt){}
+    
+    if (!l->background) {
+            while(cpt){}
+        } 
 }

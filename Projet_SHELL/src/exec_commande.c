@@ -98,7 +98,9 @@ void commande_externe(struct cmdline *l, int num_commande) {
         }
         exit(0);
     } 
-    while(cpt){}
+    if (!l->background) {
+            while(cpt){}
+        } 
 }
 
 /********************************************************/
